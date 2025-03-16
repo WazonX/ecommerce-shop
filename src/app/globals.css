@@ -5,6 +5,16 @@
   --foreground: #171717;
 }
 
+@font-face {
+  font-family: kumar;
+  src: url('./Common/Fonts/Kumar_One_Outline/KumarOneOutline-Regular.ttf');
+}
+
+@font-face {
+  font-family: quantico;
+  src: url('./Common/Fonts/Quantico/Quantico-Regular.ttf');
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
