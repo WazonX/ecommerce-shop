@@ -1,4 +1,5 @@
 'use client'
+import { delay } from 'motion';
 import {motion as m} from 'motion/react'
 
 const dropIn = {
@@ -20,15 +21,20 @@ const dropIn = {
       },
     },
     exit: {
-      opacity: 1,
+      opacity: 0,
+        height: 0,
       transition: {
+        staggerChildren: 0.06,
+        staggerDirection: -1,
+        duration: 0.6,
+        delay: 0.7
       },
     },
   };
 
   const itemVariants = {
     hide: {
-      y: "-10vh",
+      y: "-5vh",
       opacity: 0,
       transition: {
       type:"spring", bouce:1, stiffness: 1000, damping: 150, velocity: 100, duration: 0.3,
@@ -41,6 +47,13 @@ const dropIn = {
         type:"spring", stiffness: 1000, damping: 150, velocity: 100, duration: 0.3,
         }
       },
+      exit: {
+        y: "-1vh",
+        opacity: 0,
+        transition: {
+          type:"spring", stiffness: 1000, damping: 150, velocity: 100, duration: 0.3,
+          }
+        },
   };
   
   

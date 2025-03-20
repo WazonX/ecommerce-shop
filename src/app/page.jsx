@@ -3,21 +3,22 @@ import { ListFilter, Search } from "lucide-react";
 import {AnimatePresence, motion as m} from 'motion/react'
 import { useState } from "react";
 import Filter from './Common/Filter/Filter'
+import Shop from './Common/Shop/Shop'
 
-export default function Home() {
+export default function Main() {
   
   const [filterOpen, setFilterOpen] = useState(false);
   const open = () => setFilterOpen(true);
   const close = () => setFilterOpen(false);
 
   return (
-    <div className="flex ">
-      <div className="w-3/4 mx-auto flex">
-          <input className="font-[quantico] bg-amber-50 rounded-sm uppercase text-black w-full mt-14 px-5 text-xl" placeholder="Search" type="text"/>
-          <button className="w-fit h-fit mt-14 px-3 cursor-pointer">
+    <div className="grid grid-cols-1 ">
+      <div className="w-3/4 mx-auto flex mb-10">
+          <input className="font-[quantico] bg-zinc-50 rounded-sm uppercase text-black w-full mt-10 px-5 max-sm:text-sm md:text-lg xl:text-xl" placeholder="Search" type="text"/>
+          <button className="w-fit h-fit mt-10 px-3 cursor-pointer">
             <Search className="size-8"/>
           </button>
-          <m.button className="w-fit h-fit mt-14 cursor-pointer"
+          <m.button className="w-fit h-fit mt-10 cursor-pointer"
             onClick={() => (filterOpen ? close() : open())}
           >
                 <AnimatePresence>
@@ -28,6 +29,9 @@ export default function Home() {
 
             <ListFilter className="size-8"/>
           </m.button>
+      </div>
+      <div className="bg-zinc-900 rounded-lg w-3/4 mx-auto h-fit px-10 py-5">
+          <Shop/>  
       </div>
     </div>
   );
