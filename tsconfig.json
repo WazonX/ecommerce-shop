@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/Common/Filter/Filter.jsx", "src/app/page.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/Common/Filter/Filter.jsx", "src/app/page.jsx", "src/app/DataBase/Connection.js"],
   "exclude": ["node_modules"]
 }

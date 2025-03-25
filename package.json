@@ -10,10 +10,15 @@
   },
   "dependencies": {
     "lucide-react": "^0.482.0",
+    "mangodb": "^1.0.0",
     "motion": "^12.5.0",
-    "next": "15.2.2",
+    "mysql2": "^3.14.0",
+    "net": "^1.0.2",
+    "next": "^15.2.4",
+    "node": "^20.19.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tls": "^0.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
