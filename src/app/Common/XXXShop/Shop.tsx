@@ -1,13 +1,8 @@
 import { motion as m } from "motion/react" 
 import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
-import image1 from "./Image-1.jpeg"
-import image2 from "./Image-2.jpeg"
-import image3 from "./Image-3.jpeg"
-import image4 from "./Image-4.jpeg"
 import Link from "next/link";
 
-const images = [image1,image2,image3,image4]
 
 
 function Shop({ items, setIndex }:{items:any,setIndex:any}) {

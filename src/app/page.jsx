@@ -3,7 +3,6 @@ import { ListFilter, Search } from "lucide-react";
 import {AnimatePresence, motion as m} from 'motion/react'
 import { useState } from "react";
 import Filter from './Common/Filter/Filter'
-import Shop from './Common/Shop/Shop'
 import ProductList from "./Common/ProductList/ProductList";
 
 

@@ -11,12 +11,19 @@ export async function GET() {
     try {
         const [rows] = await pool.query(`
                 SELECT 
-                Id AS productId,
+                Id AS id,
                 Title AS title,
                 Price AS price,
                 Image AS image
             FROM product`);
-        return new Response(JSON.stringify(rows), {
+
+        // Convert the rows to handle image data
+        const processedRows = (rows as any[]).map(row => ({
+            ...row,
+            image: row.image ? row.image.toString('base64') : null
+        }));
+
+        return new Response(JSON.stringify(processedRows), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });

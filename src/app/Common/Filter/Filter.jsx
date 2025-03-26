@@ -1,5 +1,4 @@
 'use client'
-import { delay } from 'motion';
 import {motion as m} from 'motion/react'
 
 const dropIn = {
