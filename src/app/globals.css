@@ -7,12 +7,12 @@
 
 @font-face {
   font-family: kumar;
-  src: url('./Common/Fonts/Kumar_One_Outline/KumarOneOutline-Regular.ttf');
+  src: url("./Common/Fonts/Kumar_One_Outline/KumarOneOutline-Regular.ttf");
 }
 
 @font-face {
   font-family: quantico;
-  src: url('./Common/Fonts/Quantico/Quantico-Regular.ttf');
+  src: url("./Common/Fonts/Quantico/Quantico-Regular.ttf");
 }
 
 @theme inline {
