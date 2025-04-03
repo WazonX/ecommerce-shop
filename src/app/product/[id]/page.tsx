@@ -4,38 +4,37 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
-
-interface ProductDetails {
-    id: number;
-    title: string;
-    description: string;
-    specification: string;
-    price: number;
-    discount?: number;
-    rating: number;
-    imagesPath: string;
-    images: string[];
-    image?: string;
-}
+import { Product } from '../../types/product';
 
 export default function ProductDetails() {
     const params = useParams();
-    const [product, setProduct] = useState<ProductDetails | null>(null);
+    const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [currentImageIndex, setCurrentImageIndex] = useState(-1);
 
     useEffect(() => {
         const fetchProductDetails = async () => {
             try {
-                const response = await fetch(`/api/products/${params.id}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch product details');
+                const id = params.id as string;
+                if (!id) {
+                    throw new Error('Product ID is required');
                 }
+
+                console.log('Fetching product with ID:', id);
+                const response = await fetch(`/api/products/${id}`);
                 const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch product');
+                }
+
+                console.log('Received product data:', data);
                 setProduct(data);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An error occurred');
-            } finally {
+                setLoading(false);
+            } catch (error) {
+                console.error('Error fetching product:', error);
+                setError(error instanceof Error ? error.message : 'An error occurred');
                 setLoading(false);
             }
         };
@@ -59,6 +58,17 @@ export default function ProductDetails() {
         );
     }
 
+    // Get current image source
+    const getCurrentImageSrc = () => {
+        if (currentImageIndex === -1) {
+            return product.image ? `data:image/jpeg;base64,${product.image}` : null;
+        }
+        if (product.images && product.images[currentImageIndex]) {
+            return `/Images/${product.imagesPath}/${product.images[currentImageIndex]}`;
+        }
+        return null;
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <motion.div
@@ -69,24 +79,36 @@ export default function ProductDetails() {
                 {/* Image Gallery */}
                 <div className="space-y-4">
                     <div className="aspect-square bg-zinc-800 rounded-lg overflow-hidden">
-                        <img
-                            src={product.image ? `data:image/jpeg;base64,${product.image}` : '/placeholder.png'}
-                            alt={product.title}
-                            className="w-full h-full object-contain p-4"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = '/placeholder.png';
-                            }}
-                        />
+                        {getCurrentImageSrc() ? (
+                            <img
+                                src={getCurrentImageSrc()!}
+                                alt={product.title}
+                                className="w-full h-full object-contain p-4"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-zinc-600">
+                                No image available
+                            </div>
+                        )}
                     </div>
                     {product.images && product.images.length > 0 && (
                         <div className="grid grid-cols-4 gap-2">
-                            {product.images.map((image, index) => (
-                                <div key={index} className="aspect-square bg-zinc-800 rounded-lg overflow-hidden">
+                            {product.images.map((image: string, index: number) => (
+                                <div 
+                                    key={index} 
+                                    className={`aspect-square bg-zinc-800 rounded-lg overflow-hidden cursor-pointer ${
+                                        currentImageIndex === index ? 'ring-2 ring-blue-500' : ''
+                                    }`}
+                                    onClick={() => setCurrentImageIndex(index)}
+                                >
                                     <img
                                         src={`/Images/${product.imagesPath}/${image}`}
                                         alt={`${product.title} - ${index + 1}`}
                                         className="w-full h-full object-contain p-2"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.parentElement?.classList.add('hidden');
+                                        }}
                                     />
                                 </div>
                             ))}
@@ -104,7 +126,7 @@ export default function ProductDetails() {
                     </div>
 
                     <div className="text-2xl font-bold">
-                        {product.discount ? (
+                        {product.discount > 0 ? (
                             <div className="space-y-1">
                                 <span className="line-through text-zinc-500 text-lg">
                                     {product.price.toFixed(2)} zł

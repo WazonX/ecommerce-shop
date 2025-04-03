@@ -116,6 +116,23 @@ export class ProductService {
             }
 
             const product = (rows as any[])[0];
+
+            // Clean up imagesPath by removing forward slashes
+            const cleanImagesPath = product.imagesPath.replace(/\//g, '');
+
+            // For now, assume we have 4 images named 1.jpg, 2.jpg, 3.jpg, 4.jpg
+            const additionalImages = ['1.jpg', '2.jpg', '3.jpg', '4.jpg'];
+
+            console.log('Product image data:', {
+                id: product.id,
+                title: product.title,
+                hasMainImage: !!product.image,
+                rawImagesPath: product.imagesPath,
+                cleanImagesPath,
+                mainImageType: product.image ? typeof product.image : 'null',
+                additionalImages
+            });
+
             return {
                 id: product.id,
                 title: product.title,
@@ -126,7 +143,8 @@ export class ProductService {
                 rating: product.rating,
                 category: product.category,
                 image: product.image ? product.image.toString("base64") : null,
-                imagesPath: product.imagesPath,
+                imagesPath: cleanImagesPath,
+                images: additionalImages
             };
         } catch (error) {
             console.error('Error in getProductById:', error);
