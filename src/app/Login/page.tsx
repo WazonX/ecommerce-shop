@@ -149,7 +149,7 @@ export default function Login() {
 
     return (
         <div className="flex-1 flex items-center justify-center my-5">
-            <div className="h-[75vh] bg-zinc-900 w-3/4 rounded-lg flex items-center justify-center">
+            <div className="h-[75vh] w-3/4 rounded-lg flex items-center justify-center">
                 <div className="rounded-lg h-2/3 w-full px-10 grid grid-cols-1">
                     <div className="text-white text-7xl font-bold w-full font-[quantico] text-center">
                         Login

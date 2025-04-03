@@ -58,7 +58,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 throw new Error(data.error || 'Failed to fetch user data');
             }
 
-            // Check if user is admin based on email
             const isAdmin = data.user.email === "admin@admin.com";
             
             console.log('User data fetched successfully:', { ...data.user, isAdmin });

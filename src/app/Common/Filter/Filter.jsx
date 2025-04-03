@@ -1,5 +1,6 @@
 "use client";
 import { motion as m } from "motion/react";
+import { useState, useEffect } from "react";
 
 const dropIn = {
   hide: {
@@ -67,10 +68,40 @@ const itemVariants = {
 };
 
 const Filter = ({ handleClose, text, filterOpen, onSort }) => {
+  const [isClosing, setIsClosing] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const filterElement = document.getElementById('filter-container');
+      const filterButton = document.getElementById('filter-button');
+      
+      // Don't close if clicking on the filter button or inside the filter menu
+      if (filterButton?.contains(event.target) || filterElement?.contains(event.target)) {
+        return;
+      }
+
+      // Close if clicking outside and not already closing
+      if (text && !isClosing) {
+        setIsClosing(true);
+        handleClose();
+        // Reset closing state after animation completes
+        setTimeout(() => setIsClosing(false), 600);
+      }
+    };
+
+    if (text) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [text, handleClose, isClosing]);
+
   return (
     <>
       <m.ul
-        onClick={handleClose}
+        id="filter-container"
         className="w-fit h-fit px-4 font-[quantico] max-lg:top-40 max-lg:right-5 top-50 text-lg p-2 z-[1] bg-black rounded-md text-white border-[1px] border-zinc-500 border-solid absolute"
         variants={dropIn}
         animate={text ? "visible" : "hide"}
@@ -186,10 +217,6 @@ const Filter = ({ handleClose, text, filterOpen, onSort }) => {
           Low to High
         </m.li>
       </m.ul>
-      <div
-        onClick={handleClose}
-        className="w-full h-full absolute top-0 left-0 z-[0]"
-      />
     </>
   );
 };

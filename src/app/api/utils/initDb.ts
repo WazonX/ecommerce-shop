@@ -24,4 +24,23 @@ export async function createAdminUser() {
         console.error("Error creating admin user:", error);
         throw error;
     }
+}
+
+export async function createCartTable() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS cart (
+                Id INT AUTO_INCREMENT PRIMARY KEY,
+                UserId INT NOT NULL,
+                ProductId INT NOT NULL,
+                FOREIGN KEY (UserId) REFERENCES user(Id),
+                FOREIGN KEY (ProductId) REFERENCES product(Id),
+                UNIQUE KEY unique_cart_item (UserId, ProductId)
+            )
+        `);
+        console.log("Cart table created successfully");
+    } catch (error) {
+        console.error("Error creating cart table:", error);
+        throw error;
+    }
 } 

@@ -1,32 +1,19 @@
-import mysql from "mysql2/promise";
+import { ProductService } from '../../Services/ProductService';
 
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "ecommerce",
-});
-
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const [rows] = await pool.query(`
-                SELECT 
-                    Id AS id,
-                    Title AS title,
-                    Price AS price,
-                    Image AS image,
-                    Rating AS rating,
-                    Discount AS discount
-                FROM product
-                `);
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
+    const productService = ProductService.getInstance();
 
-    // Convert the rows to handle image data
-    const processedRows = (rows as any[]).map((row) => ({
-      ...row,
-      image: row.image ? row.image.toString("base64") : null,
-    }));
+    let products;
+    if (category) {
+      products = await productService.getProductsByCategory(parseInt(category));
+    } else {
+      products = await productService.getAllProducts();
+    }
 
-    return new Response(JSON.stringify(processedRows), {
+    return new Response(JSON.stringify(products), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
