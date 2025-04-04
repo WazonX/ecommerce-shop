@@ -5,13 +5,27 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import { Product } from '../../types/product';
+import { useAuth } from '../../Common/Auth/AuthContext';
+
+interface Comment {
+    id: number;
+    text: string;
+    rating: number;
+    firstName: string;
+    lastName: string;
+}
 
 export default function ProductDetails() {
     const params = useParams();
+    const { userInfo } = useAuth();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [currentImageIndex, setCurrentImageIndex] = useState(-1);
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [commentText, setCommentText] = useState('');
+    const [rating, setRating] = useState(5);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [commentError, setCommentError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchProductDetails = async () => {
@@ -42,6 +56,83 @@ export default function ProductDetails() {
         fetchProductDetails();
     }, [params.id]);
 
+    useEffect(() => {
+        const fetchComments = async () => {
+            if (!product) return;
+            
+            try {
+                // Simple fetch without any complex error handling
+                const response = await fetch(`/api/comments?productId=${product.id}`);
+                const data = await response.json();
+                
+                // Simple check for data structure
+                if (data && data.comments) {
+                    setComments(data.comments);
+                } else {
+                    setComments([]);
+                }
+            } catch (error) {
+                // Just log the error and set empty comments
+                console.error('Error fetching comments');
+                setComments([]);
+            }
+        };
+        
+        fetchComments();
+    }, [product]);
+
+    const handleSubmitComment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!userInfo?.id) {
+            setCommentError('Please log in to leave a comment');
+            return;
+        }
+        
+        if (!commentText.trim()) {
+            setCommentError('Please enter a comment');
+            return;
+        }
+        
+        setIsSubmitting(true);
+        setCommentError(null);
+        
+        try {
+            const response = await fetch('/api/comments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userInfo.id,
+                    productId: product?.id,
+                    text: commentText,
+                    rating
+                }),
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to submit comment');
+            }
+            
+            // Add the new comment to the list
+            if (data.comment) {
+                setComments(prevComments => [data.comment, ...prevComments]);
+            }
+            
+            // Reset form
+            setCommentText('');
+            setRating(5);
+        } catch (error) {
+            console.error('Error submitting comment:', error);
+            setCommentError(error instanceof Error ? error.message : 'Failed to submit comment');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -58,17 +149,6 @@ export default function ProductDetails() {
         );
     }
 
-    // Get current image source
-    const getCurrentImageSrc = () => {
-        if (currentImageIndex === -1) {
-            return product.image ? `data:image/jpeg;base64,${product.image}` : null;
-        }
-        if (product.images && product.images[currentImageIndex]) {
-            return `/Images/${product.imagesPath}/${product.images[currentImageIndex]}`;
-        }
-        return null;
-    };
-
     return (
         <div className="container mx-auto px-4 py-8">
             <motion.div
@@ -76,12 +156,12 @@ export default function ProductDetails() {
                 animate={{ opacity: 1, y: 0 }}
                 className="grid grid-cols-1 md:grid-cols-2 gap-8"
             >
-                {/* Image Gallery */}
+                {/* Product Image */}
                 <div className="space-y-4">
                     <div className="aspect-square bg-zinc-800 rounded-lg overflow-hidden">
-                        {getCurrentImageSrc() ? (
+                        {product.image ? (
                             <img
-                                src={getCurrentImageSrc()!}
+                                src={`data:image/jpeg;base64,${product.image}`}
                                 alt={product.title}
                                 className="w-full h-full object-contain p-4"
                             />
@@ -91,29 +171,6 @@ export default function ProductDetails() {
                             </div>
                         )}
                     </div>
-                    {product.images && product.images.length > 0 && (
-                        <div className="grid grid-cols-4 gap-2">
-                            {product.images.map((image: string, index: number) => (
-                                <div 
-                                    key={index} 
-                                    className={`aspect-square bg-zinc-800 rounded-lg overflow-hidden cursor-pointer ${
-                                        currentImageIndex === index ? 'ring-2 ring-blue-500' : ''
-                                    }`}
-                                    onClick={() => setCurrentImageIndex(index)}
-                                >
-                                    <img
-                                        src={`/Images/${product.imagesPath}/${image}`}
-                                        alt={`${product.title} - ${index + 1}`}
-                                        className="w-full h-full object-contain p-2"
-                                        onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            target.parentElement?.classList.add('hidden');
-                                        }}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    )}
                 </div>
 
                 {/* Product Details */}
@@ -206,6 +263,91 @@ export default function ProductDetails() {
                     </div>
                 </div>
             </motion.div>
+
+            {/* Comments Section */}
+            <div className="mt-12 space-y-8">
+                <h2 className="text-2xl font-bold">Comments</h2>
+                
+                {/* Comment Form */}
+                <div className="bg-zinc-800 rounded-lg p-6">
+                    <h3 className="text-xl font-semibold mb-4">Leave a Comment</h3>
+                    
+                    {commentError && (
+                        <div className="bg-red-900 text-red-200 p-3 rounded mb-4">
+                            {commentError}
+                        </div>
+                    )}
+                    
+                    <form onSubmit={handleSubmitComment} className="space-y-4">
+                        <div>
+                            <label htmlFor="rating" className="block text-sm font-medium mb-2">
+                                Rating
+                            </label>
+                            <div className="flex space-x-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                        key={star}
+                                        type="button"
+                                        onClick={() => setRating(star)}
+                                        className="focus:outline-none"
+                                    >
+                                        <Star 
+                                            className={`w-6 h-6 ${star <= rating ? 'text-amber-500 fill-amber-500' : 'text-zinc-600'}`} 
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label htmlFor="comment" className="block text-sm font-medium mb-2">
+                                Your Comment
+                            </label>
+                            <textarea
+                                id="comment"
+                                rows={4}
+                                value={commentText}
+                                onChange={(e) => setCommentText(e.target.value)}
+                                className="w-full bg-zinc-700 text-white rounded p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Share your thoughts about this product..."
+                            />
+                        </div>
+                        
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors disabled:opacity-50"
+                        >
+                            {isSubmitting ? 'Sending...' : 'Send Comment'}
+                        </button>
+                    </form>
+                </div>
+                
+                {/* Comments List */}
+                <div className="space-y-4">
+                    {comments.length === 0 ? (
+                        <p className="text-zinc-400 italic">No comments yet. Be the first to review this product!</p>
+                    ) : (
+                        <div>
+                            <p className="text-zinc-400 mb-4">Showing {comments.length} comment{comments.length !== 1 ? 's' : ''}</p>
+                            {comments.map((comment) => (
+                                <div key={comment.id} className="bg-zinc-800 rounded-lg p-4 mb-4">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="font-medium">
+                                            {comment.firstName} {comment.lastName}
+                                        </div>
+                                        <div className="flex items-center">
+                                            <Star className="w-4 h-4 text-amber-500 fill-amber-500 mr-1" />
+                                            <span>{comment.rating}</span>
+                                        </div>
+                                    </div>
+                                    <p className="text-zinc-300">{comment.text}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 } 

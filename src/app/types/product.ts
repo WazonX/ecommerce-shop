@@ -4,14 +4,8 @@ export interface Product {
     description: string;
     specification: string;
     price: number;
-    imagesPath: string;
-    image: string | null;
+    image: string;
     discount: number;
     rating: number;
-    images: string[];
-    imageCount: number;
-    CategoryName: string;
-    BrandName: string;
     CategoryId: number;
-    BrandId: number;
 } 

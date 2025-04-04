@@ -126,30 +126,18 @@ const ProductList = ({ products, onSort }: ProductListProps) => {
     };
 
     const getImageSrc = (imageData: string | undefined): string | null => {
-        if (!imageData) return null;
-        
-        try {
-            // If it's already a data URL, return it
-            if (imageData.startsWith('data:image')) {
-                return imageData;
-            }
-            
-            // If it's a base64 string, add the data URL prefix
-            if (/^[A-Za-z0-9+/=]+$/.test(imageData)) {
+        if (imageData) {
+            try {
+                if (imageData.startsWith('data:image')) {
+                    return imageData;
+                }
                 return `data:image/jpeg;base64,${imageData}`;
+            } catch (error) {
+                console.error('Error processing image data:', error);
             }
-            
-            // If it's a URL, return it as is
-            if (imageData.startsWith('http')) {
-                return imageData;
-            }
-            
-            return null;
-        } catch (error) {
-            console.error('Error processing image data:', error);
-            return null;
         }
-    };
+        return null;
+    };    
 
     if (!products.length) return <p>Loading...</p>;
 
@@ -221,7 +209,7 @@ const ProductList = ({ products, onSort }: ProductListProps) => {
                                         <div className="relative h-fit w-fit mx-auto">
                                             <img
                                                 className='p-1 aspect-square rounded-md w-60'
-                                                src={getImageSrc(product.image) || '/placeholder.png'}
+                                                src={getImageSrc(product.image) ?? ''}
                                                 alt={product.title}
                                                 onError={(e) => {
                                                     const target = e.target as HTMLImageElement;
@@ -229,11 +217,9 @@ const ProductList = ({ products, onSort }: ProductListProps) => {
                                                 }}
                                             />
                                         </div>
-                                        <div className="w-[300px] max-sm:block hidden">
-                                            <h3 className='text-lg max-sm:text-xl'>
+                                            <h3 className='w-full h-fit my-3'>
                                                 {product.title}
                                             </h3>
-                                        </div>
                                     </div>
                                     <div className='flex flex-col gap-2 mt-4 max-sm:mb-0 max-lg:mb-20 lg:mb-20'>
                                         <div className='flex justify-between items-center'>
