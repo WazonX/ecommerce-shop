@@ -92,7 +92,7 @@ export class ProductService {
         return this.getProductsByQuery(query, [`%${searchTerm}%`]);
     }
 
-    static async getProductById(id: number): Promise<Product | null> {
+    public async getProductById(id: number): Promise<Product | null> {
         try {
             const [rows] = await pool.query(
                 `SELECT 
@@ -103,9 +103,8 @@ export class ProductService {
                     p.Price AS price,
                     p.Discount AS discount,
                     p.Rating AS rating,
-                    p.Category AS category,
-                    p.Image AS image,
-                    p.ImagesPath AS imagesPath
+                    p.Category AS CategoryId,
+                    p.Image AS image
                 FROM product p
                 WHERE p.Id = ?`,
                 [id]
@@ -117,20 +116,11 @@ export class ProductService {
 
             const product = (rows as any[])[0];
 
-            // Clean up imagesPath by removing forward slashes
-            const cleanImagesPath = product.imagesPath.replace(/\//g, '');
-
-            // For now, assume we have 4 images named 1.jpg, 2.jpg, 3.jpg, 4.jpg
-            const additionalImages = ['1.jpg', '2.jpg', '3.jpg', '4.jpg'];
-
             console.log('Product image data:', {
                 id: product.id,
                 title: product.title,
                 hasMainImage: !!product.image,
-                rawImagesPath: product.imagesPath,
-                cleanImagesPath,
-                mainImageType: product.image ? typeof product.image : 'null',
-                additionalImages
+                mainImageType: product.image ? typeof product.image : 'null'
             });
 
             return {
@@ -141,10 +131,8 @@ export class ProductService {
                 price: product.price,
                 discount: product.discount,
                 rating: product.rating,
-                category: product.category,
-                image: product.image ? product.image.toString("base64") : null,
-                imagesPath: cleanImagesPath,
-                images: additionalImages
+                CategoryId: product.CategoryId,
+                image: product.image ? product.image.toString("base64") : null
             };
         } catch (error) {
             console.error('Error in getProductById:', error);

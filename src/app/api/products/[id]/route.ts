@@ -14,7 +14,10 @@ export async function GET(
             );
         }
 
-        const product = await ProductService.getProductById(productId);
+        // Get the singleton instance of ProductService
+        const productService = ProductService.getInstance();
+        const product = await productService.getProductById(productId);
+        
         if (!product) {
             return NextResponse.json(
                 { error: 'Product not found' },
