@@ -6,20 +6,23 @@ import { Heart, Pen, Star, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../Auth/AuthContext';
 import { Product } from '../../types/product';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
 
 interface ProductListProps {
     products: Product[];
-    onSort: (field: string, direction: 'asc' | 'desc') => void;
+    onSort?: (field: string, direction: 'asc' | 'desc') => void;
 }
 
-const ProductList = ({ products, onSort }: ProductListProps) => {
+const ProductList = ({ products = [], onSort }: ProductListProps) => {
+    const router = useRouter();
     const { userInfo } = useAuth();
     const [hoveredProductId, setHoveredProductId] = useState<number | null>(null);
     const [wishlistItems, setWishlistItems] = useState<number[]>([]);
     const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
     const [isAddingToCart, setIsAddingToCart] = useState<{ [key: string]: boolean }>({});
     const [isMobile, setIsMobile] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -31,6 +34,32 @@ const ProductList = ({ products, onSort }: ProductListProps) => {
         
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
+
+    useEffect(() => {
+        const initializeProducts = async () => {
+            if (!products || products.length === 0) {
+                setLoading(true);
+                try {
+                    const response = await fetch('/api/products');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch products');
+                    }
+                    const data = await response.json();
+                    if (!data || !data.products) {
+                        throw new Error('Invalid product data received');
+                    }
+                    // If we're using the products prop, we don't need to set the products here
+                    setLoading(false);
+                } catch (err) {
+                    console.error('Error fetching products:', err);
+                    setError(err instanceof Error ? err.message : 'Failed to load products');
+                    setLoading(false);
+                }
+            }
+        };
+
+        initializeProducts();
+    }, [products]);
 
     useEffect(() => {
         const savedWishlist = sessionStorage.getItem('wishlist');
@@ -139,7 +168,29 @@ const ProductList = ({ products, onSort }: ProductListProps) => {
         return null;
     };    
 
-    if (!products.length) return <p>Loading...</p>;
+    if (!products || products.length === 0) {
+        if (loading) {
+            return (
+                <div className="w-full text-center py-8">
+                    <p className="text-white text-xl">Loading products...</p>
+                </div>
+            );
+        }
+        
+        if (error) {
+            return (
+                <div className="w-full text-center py-8">
+                    <p className="text-red-500 text-xl">{error}</p>
+                </div>
+            );
+        }
+
+        return (
+            <div className="w-full text-center py-8">
+                <p className="text-zinc-400 text-xl">No products available</p>
+            </div>
+        );
+    }
 
     return (
         <div

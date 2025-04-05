@@ -42,9 +42,14 @@ export default function AuthLayout({ children, title }: AuthLayoutProps) {
                 firstName: userInfo.firstName || '',
                 lastName: userInfo.lastName || ''
             });
+
+            // Check if user is admin and redirect
+            if (userInfo.isAdmin) {
+                router.push('/AdminPanel');
+            }
         }
         setIsLoading(false);
-    }, [userInfo]);
+    }, [userInfo, router]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -149,9 +154,23 @@ export default function AuthLayout({ children, title }: AuthLayoutProps) {
                             <input 
                                 type="text" 
                                 name="zipCode"
+                                onChange={(e) => {
+                                    const digits = e.target.value.replace(/\D/g, '');
+                                                                        let formattedValue = digits;
+                                    if (digits.length >= 2) {
+                                        formattedValue = digits.slice(0, 2) + '-' + digits.slice(2, 5);
+                                    }                                
+                                    formattedValue = formattedValue.slice(0, 6);
+                                    handleInputChange({
+                                        target: {
+                                            name: 'zipCode',
+                                            value: formattedValue
+                                        }
+                                    } as React.ChangeEvent<HTMLInputElement>);
+                                }}
+                                maxLength={6}
+                                pattern="\d{2}-\d{3}"
                                 placeholder={formData.zipCode}
-                                onChange={handleInputChange}
-                                maxLength={5} 
                                 className="bg-zinc-800 caret-white text-white rounded-md px-2 py-1" 
                             />
                         </div>

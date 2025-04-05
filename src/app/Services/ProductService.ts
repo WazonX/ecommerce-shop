@@ -139,4 +139,50 @@ export class ProductService {
             throw error;
         }
     }
+
+    public async deleteProductById(id: number): Promise<boolean> {
+        try {
+            const [result] = await pool.query(
+                `DELETE FROM product WHERE Id = ?`,
+                [id]
+            );
+
+            return (result as any).affectedRows > 0;
+        } catch (error) {
+            console.error('Error in deleteProductById:', error);
+            throw new Error('Failed to delete product');
+        }
+    }
+
+    public async updateProductById(id: number, updatedProduct: Product): Promise<boolean> {
+        try {
+            const [result] = await pool.query(
+                `UPDATE product SET 
+                    Title = ?, 
+                    Description = ?, 
+                    Specification = ?, 
+                    Price = ?, 
+                    Discount = ?, 
+                    Rating = ?, 
+                    Category = ? 
+                WHERE Id = ?`,
+                [
+                    updatedProduct.title,
+                    updatedProduct.description,
+                    updatedProduct.specification,
+                    updatedProduct.price,
+                    updatedProduct.discount,
+                    updatedProduct.rating,
+                    updatedProduct.CategoryId,
+                    id
+                ]
+            );
+
+            return (result as any).affectedRows > 0;
+        } catch (error) {
+            console.error('Error in updateProductById:', error);
+            console.error('Failed to update product with ID:', id, 'and data:', updatedProduct);
+            throw new Error('Failed to update product');
+        }
+    }
 } 

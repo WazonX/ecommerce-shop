@@ -44,8 +44,12 @@ export default function Main() {
     setProducts(sortedProducts);
   };
 
+  const handleSearchResults = (searchResults: Product[]) => {
+    setProducts(searchResults);
+  };
+
   useEffect(() => {
-    async function fetchProducts() {
+    const fetchProducts = async () => {
       try {
         const baseUrl = '/api/products';
         const url = category 
@@ -57,8 +61,8 @@ export default function Main() {
           const errorData = await res.json();
           throw new Error(errorData.error || 'Failed to fetch products');
         }
-        const data = await res.json();
-        const sortedData = data.sort((a: Product, b: Product) => {
+        const { products } = await res.json();
+        const sortedData = products.sort((a: Product, b: Product) => {
           const priceA = getFinalPrice(a);
           const priceB = getFinalPrice(b);
           return priceA - priceB;
@@ -67,13 +71,14 @@ export default function Main() {
       } catch (error) {
         console.error('Error fetching products:', error);
       }
-    }
+    };
+    
     fetchProducts();
   }, [category]);
 
   return (
       <div className="flex flex-col  rounded-lg @max-6xl:w-full mx-auto w-3/4 px-10 py-5 flex-grow">
-        <SearchBar onSort={handleSort} />
+        <SearchBar onSort={handleSort} onSearchResults={handleSearchResults} />
         <ProductList products={products} onSort={handleSort} />
       </div>
   );

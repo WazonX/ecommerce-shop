@@ -28,22 +28,22 @@ export default function AddressSetup() {
       }
 
       try {
-        const res = await fetch(`/api/user/address?userId=${userInfo.id}`);
+        const res = await fetch(`/api/users/${userInfo.id}`);
         if (!res.ok) {
           throw new Error("Failed to fetch address");
         }
 
         const data = await res.json();
-        if (data.address) {
+        if (data.user) {
           // Format the zipCode with hyphen
-          const formattedZipCode = data.address.zipCode.replace(/(\d{2})(\d{3})/, '$1-$2');
+          const formattedZipCode = data.user.zipCode.replace(/(\d{2})(\d{3})/, '$1-$2');
           
           setFormData(prev => ({
             ...prev,
-            country: data.address.country || "",
-            city: data.address.city || "",
+            country: data.user.country || "",
+            city: data.user.city || "",
             zipCode: formattedZipCode || "",
-            street: data.address.street || ""
+            street: data.user.street || ""
           }));
         }
       } catch (error) {
@@ -177,21 +177,23 @@ export default function AddressSetup() {
     }
 
     try {
-      const res = await fetch("/api/user/address", {
-        method: "POST",
+      // Update the address using PUT to the new endpoint
+      const res = await fetch(`/api/users/${userInfo.id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: userInfo.id,
-          ...formData
+          country: formData.country,
+          city: formData.city,
+          zipCode: formData.zipCode.replace('-', ''), // Remove hyphen for storage
+          street: formData.street
         }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        throw new Error(data.error || "Failed to save address");
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to save address");
       }
 
       // Clear the cart

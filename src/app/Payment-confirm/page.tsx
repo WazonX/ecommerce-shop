@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "../Common/Auth/AuthContext";
 import { useRouter } from "next/navigation";
+import React from "react";
 
 export default function AddressSetup() {
   const [formData, setFormData] = useState({

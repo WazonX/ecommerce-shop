@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import { Product } from '../../types/product';
 import { useAuth } from '../../Common/Auth/AuthContext';
@@ -38,7 +39,6 @@ export default function ProductDetails() {
         return Math.round(average * 10) / 10;
     };
 
-    // Fetch product details
     useEffect(() => {
         const fetchProductDetails = async () => {
             try {
@@ -47,20 +47,15 @@ export default function ProductDetails() {
                     throw new Error('Product ID is required');
                 }
 
+                console.log('Fetching product with ID:', id);
                 const response = await fetch(`/api/products/${id}`);
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to fetch product');
-                }
-                
                 const data = await response.json();
-                
-                // Ensure the product ID is a number
-                if (data && typeof data.id === 'string') {
-                    data.id = parseInt(data.id, 10);
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch product');
                 }
-                
+
+                console.log('Received product data:', data);
                 setProduct(data);
                 setLoading(false);
             } catch (error) {
@@ -73,17 +68,19 @@ export default function ProductDetails() {
         fetchProductDetails();
     }, [params.id]);
 
-    // Fetch comments
     useEffect(() => {
         const fetchComments = async () => {
             if (!product) return;
             
             try {
+                // Simple fetch without any complex error handling
                 const response = await fetch(`/api/comments?productId=${product.id}`);
                 const data = await response.json();
                 
+                // Simple check for data structure
                 if (data && data.comments) {
                     setComments(data.comments);
+                    // Calculate average rating from comments
                     const avgRating = calculateAverageRating(data.comments);
                     setAverageRating(avgRating);
                 } else {
@@ -91,6 +88,7 @@ export default function ProductDetails() {
                     setAverageRating(0);
                 }
             } catch (error) {
+                // Just log the error and set empty comments
                 console.error('Error fetching comments');
                 setComments([]);
                 setAverageRating(0);
@@ -113,11 +111,6 @@ export default function ProductDetails() {
             return;
         }
         
-        if (!product) {
-            setCommentError('Product information is missing');
-            return;
-        }
-        
         setIsSubmitting(true);
         setCommentError(null);
         
@@ -129,7 +122,7 @@ export default function ProductDetails() {
                 },
                 body: JSON.stringify({
                     userId: userInfo.id,
-                    productId: product.id,
+                    productId: product?.id,
                     text: commentText,
                     rating
                 }),
@@ -149,28 +142,6 @@ export default function ProductDetails() {
                 // Recalculate average rating
                 const newAvgRating = calculateAverageRating(newComments);
                 setAverageRating(newAvgRating);
-                
-                // Update the product rating in the database
-                try {
-                    await fetch(`/api/products/${product.id}/rating`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ rating: newAvgRating }),
-                    });
-                    
-                    // Update the local product state with the new rating
-                    setProduct(prevProduct => {
-                        if (!prevProduct) return null;
-                        return {
-                            ...prevProduct,
-                            rating: newAvgRating
-                        };
-                    });
-                } catch (error) {
-                    console.error('Error updating product rating:', error);
-                }
             }
             
             // Reset form
@@ -202,7 +173,11 @@ export default function ProductDetails() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-8"
+            >
                 {/* Product Image */}
                 <div className="space-y-4">
                     <div className="aspect-square bg-zinc-800 rounded-lg overflow-hidden">
@@ -309,7 +284,7 @@ export default function ProductDetails() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Comments Section */}
             <div className="mt-12 space-y-8">
